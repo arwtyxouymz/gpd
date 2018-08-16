@@ -8,7 +8,8 @@ def cloudCallback(msg):
     global cloud
     if len(cloud) == 0:
         for p in point_cloud2.read_points(msg):
-            cloud.append([p[0], p[1], p[2]])
+            # cloud.append([p[0], p[1], p[2]])
+            cloud += [[p[0], p[1], p[2]]]
 
 
 # Create a ROS node.
@@ -60,7 +61,7 @@ print 'Published cloud with', len(msg.indices), 'indices'
 
 
 # Select a grasp for the robot to execute.
-from gpd.msg import GraspConfigList
+from gpd.msg import GraspConfigList, GraspConfig
 
 grasps = [] # global variable to store grasps
 
@@ -80,4 +81,6 @@ while not rospy.is_shutdown():
         break
 
 grasp = grasps[0] # grasps are sorted in descending order by score
+grasp_pub = rospy.Publisher('/best_grasp', GraspConfig, queue_size=1)
+grasp_pub.publish(grasp)
 print 'Selected grasp with score:', grasp.score
