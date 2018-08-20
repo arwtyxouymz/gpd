@@ -18,8 +18,7 @@ def cloudCallback(msg):
     global cloud
     if len(cloud) == 0:
         for p in point_cloud2.read_points(msg):
-            # cloud.append([p[0], p[1], p[2]])
-            cloud += [[p[0], p[1], p[2]]]
+            cloud.append([p[0], p[1], p[2]])
 
 
 # Create a ROS node.
