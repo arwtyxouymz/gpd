@@ -36,9 +36,8 @@ while len(cloud) == 0:
 
 # Extract the nonplanar indices. Uses a least squares fit AX = b. Plane equation: z = ax + by + c.
 
-cloud = np.nan_to_num(np.array(cloud))
-print type(cloud)
-X = cloud
+np_cloud = np.nan_to_num(np.asarray(cloud))
+X = np_cloud
 print(X.shape[0])
 A = np.c_[X[:, 0], X[:, 1], np.ones(X.shape[0])]
 C, _, _, _ = lstsq(A, X[:, 2])
@@ -50,17 +49,16 @@ idx = np.where(dist > 0.01)
 
 
 # Publish point cloud and nonplanar indices.
-# pub = rospy.Publisher('/cloud_indexed', CloudIndexed, queue_size=1)
-pub = rospy.Publisher('/cloud_stitched', CloudIndexed, queue_size=1)
+pub = rospy.Publisher('/cloud_indexed', CloudIndexed, queue_size=1)
+# pub = rospy.Publisher('/cloud_stitched', CloudIndexed, queue_size=1)
 
 msg = CloudIndexed()
 header = Header()
 header.frame_id = "/base_link"
 header.stamp = rospy.Time.now()
-print(type(cloud))
-msg.cloud_sources.cloud = point_cloud2.create_cloud_xyz32(header, cloud.tolist())
+msg.cloud_sources.cloud = point_cloud2.create_cloud_xyz32(header, np_cloud.tolist())
 msg.cloud_sources.view_points.append(Point(0, 0, 0))
-for i in xrange(cloud.shape[0]):
+for i in xrange(np_cloud.shape[0]):
     msg.cloud_sources.camera_source.append(Int64(0))
 for i in idx[0]:
     msg.indices.append(Int64(i))
