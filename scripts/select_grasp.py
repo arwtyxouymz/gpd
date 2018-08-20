@@ -37,7 +37,6 @@ while len(cloud) == 0:
 
 np_cloud = np.nan_to_num(np.asarray(cloud))
 X = np_cloud
-print(X.shape[0])
 A = np.c_[X[:, 0], X[:, 1], np.ones(X.shape[0])]
 C, _, _, _ = lstsq(A, X[:, 2])
 # coefficients of the form: a*x + b*y + c*z + d = 0.
