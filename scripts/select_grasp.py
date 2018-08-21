@@ -25,8 +25,8 @@ def cloudCallback(msg):
 rospy.init_node('select_grasp')
 
 # Subscribe to the ROS topic that contains the grasps.
-# cloud_sub = rospy.Subscriber('/cloud_pcd', PointCloud2, cloudCallback)
-cloud_sub = rospy.Subscriber('/camera/depth_registered/points', PointCloud2, cloudCallback)
+cloud_sub = rospy.Subscriber('/cloud_pcd', PointCloud2, cloudCallback)
+# cloud_sub = rospy.Subscriber('/camera/depth_registered/points', PointCloud2, cloudCallback)
 
 # Wait for point cloud to arrive.
 while len(cloud) == 0:

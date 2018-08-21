@@ -35,7 +35,8 @@
     <!-- Preprocessing of point cloud -->
     <param name="voxelize" value="true"/>
     <param name="remove_outliers" value="false"/>
-    <rosparam param="workspace"> [-1, 1, -1, 1, -1, 1] </rosparam>
+    <rosparam param="workspace"> [0, 1, -1, 1, -1, 1] </rosparam>
+    <!-- <rosparam param="workspace"> [-2, 2, -2, 2, -2, 2] </rosparam> -->
     <rosparam param="camera_position"> [0, 0, 0] </rosparam>
             
     <!-- General parameters -->
@@ -48,7 +49,7 @@
     
     <!-- Filtering of grasp candidates --> 
     <param name="filter_grasps" value="false" /> <!-- on workspace and robot hand aperture -->
-    <rosparam param="workspace_grasps"> [0.55, 1.0, -0.41, 0.03, -0.29, 1.0] </rosparam>
+    <rosparam param="workspace_grasps"> [0.0, 1.0, -0.41, 0.03, -0.29, 1.0] </rosparam>
     <param name="filter_half_antipodal" value="false"/> <!-- on half antipodal -->
     
     <!-- Grasp image creation -->
