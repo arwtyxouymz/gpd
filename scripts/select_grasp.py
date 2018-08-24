@@ -47,8 +47,8 @@ idx = np.where(dist > 0.01)
 
 
 # Publish point cloud and nonplanar indices.
-pub = rospy.Publisher('/cloud_indexed', CloudIndexed, queue_size=1)
-# pub = rospy.Publisher('/cloud_stitched', CloudIndexed, queue_size=1)
+# pub = rospy.Publisher('/cloud_indexed', CloudIndexed, queue_size=1)
+pub = rospy.Publisher('/cloud_stitched', CloudIndexed, queue_size=1)
 
 msg = CloudIndexed()
 header = Header()
