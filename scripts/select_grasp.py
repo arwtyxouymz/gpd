@@ -35,7 +35,7 @@ while len(cloud) == 0:
 
 # Extract the nonplanar indices. Uses a least squares fit AX = b. Plane equation: z = ax + by + c.
 
-np_cloud = np.nan_to_num(np.asarray(cloud))
+np_cloud = np.asarray(cloud)
 X = np_cloud
 A = np.c_[X[:, 0], X[:, 1], np.ones(X.shape[0])]
 C, _, _, _ = lstsq(A, X[:, 2])
@@ -47,8 +47,8 @@ idx = np.where(dist > 0.01)
 
 
 # Publish point cloud and nonplanar indices.
-# pub = rospy.Publisher('/cloud_indexed', CloudIndexed, queue_size=1)
-pub = rospy.Publisher('/cloud_stitched', CloudIndexed, queue_size=1)
+pub = rospy.Publisher('/cloud_indexed', CloudIndexed, queue_size=1)
+# pub = rospy.Publisher('/cloud_stitched', CloudIndexed, queue_size=1)
 
 msg = CloudIndexed()
 header = Header()
