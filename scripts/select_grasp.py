@@ -12,9 +12,13 @@ from gpd.msg import GraspConfigList, GraspConfig
 
 # global variable to store the point cloud
 cloud = []
+hoge_pub = rospy.Publisher("/test_cloud", PointCloud2, queue_size=1)
 
+hoge = None
 
 def cloudCallback(msg):
+    global hoge
+    hoge = msg
     global cloud
     if len(cloud) == 0:
         for p in point_cloud2.read_points(msg):
@@ -43,7 +47,7 @@ C, _, _, _ = lstsq(A, X[:, 2])
 a, b, c, d = C[0], C[1], -1., C[2]
 dist = ((a*X[:, 0] + b*X[:, 1] + d) - X[:, 2])**2
 err = dist.sum()
-idx = np.where(dist > 0.01)
+idx = np.where(dist > 0.001 ** 2)
 
 
 # Publish point cloud and nonplanar indices.

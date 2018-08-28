@@ -16,8 +16,8 @@
     <param name="use_importance_sampling" value="false" />
         
     <!-- What type of point cloud is used and what ROS topic it comes from -->
-    <param name="cloud_type" value="1" /> <!-- 0: PointCloud2, 1: CloudIndexed, 2: CloudSamples -->
-    <param name="cloud_topic" value="/cloud_indexed" />
+    <param name="cloud_type" value="0" /> <!-- 0: PointCloud2, 1: CloudIndexed, 2: CloudSamples -->
+    <param name="cloud_topic" value="/cloud_pcd" />
     
     <!-- (optional) The ROS topic that the samples come from (default: an empty string) -->
     <param name="samples_topic" value="" />
@@ -33,8 +33,8 @@
     <param name="rviz_topic" value="grasps_rviz" />
     
     <!-- Preprocessing of point cloud -->
-    <param name="voxelize" value="false"/>
-    <param name="remove_outliers" value="false"/>
+    <param name="voxelize" value="true"/>
+    <param name="remove_outliers" value="true"/>
     <!-- <rosparam param="workspace"> [0.5, 1.17, -1, 1, -1, 1] </rosparam> -->
     <rosparam param="workspace"> [0.5, 1.2, -0.6, 0.6, 0.0, 0.5] </rosparam>
     <rosparam param="camera_position"> [0, 0, 0] </rosparam>
@@ -49,8 +49,8 @@
     
     <!-- Filtering of grasp candidates -->
     <param name="filter_grasps" value="true" /> <!-- on workspace and robot hand aperture -->
-    <rosparam param="workspace_grasps"> [0.55, 1.15, -0.6, 0.6, 0.0, 0.5] </rosparam>
-    <param name="filter_half_antipodal" value="false"/> <!-- on half antipodal -->
+    <rosparam param="workspace_grasps"> [0.7, 1.00, -0.45, 0.45, 0.1, 0.5] </rosparam>
+    <param name="filter_half_antipodal" value="true"/> <!-- on half antipodal -->
     
     <!-- Grasp image creation -->
     <param name="create_image_batches" value="false" /> <!-- creates grasp images in batches (less memory usage) -->
@@ -60,7 +60,7 @@
     <param name="min_inliers" value="0" />
         
     <!-- Grasp selection -->
-    <param name="min_score_diff" value="50" />
+    <param name="min_score_diff" value="100" />
     <param name="min_aperture" value="0.0" />
     <param name="max_aperture" value="0.085" />
     <param name="num_selected" value="100" />
