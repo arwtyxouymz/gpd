@@ -523,6 +523,55 @@ visualization_msgs::Marker GraspDetectionNode::createHandBaseMarker(const Eigen:
   return marker;
 }
 
+geometry_msgs::PoseStamped
+GraspDetectionNode::convert_to_ros_msg(Grasp &grasp) {
+  const HandSearch::Parameters &params =
+      grasp_detector_->getHandSearchParameters();
+  double outer_diameter, hand_depth, finger_width, hand_height;
+  outer_diameter = params.hand_outer_diameter_;
+  double width = outer_diameter;
+  double hw = 0.5 * width;
+
+  hand_depth = params.hand_depth_;
+  finger_width = params.finger_width_;
+  hand_height = params.hand_height_;
+
+  Eigen::Vector3d left_bottom, right_bottom, left_top, right_top, left_center,
+      right_center, approach_center, base_center;
+
+  left_bottom =
+      grasp.getGraspBottom() - (hw - 0.5 * finger_width) * grasp.getBinormal();
+  right_bottom =
+      grasp.getGraspBottom() + (hw - 0.5 * finger_width) * grasp.getBinormal();
+  left_top = left_bottom + hand_depth * grasp.getApproach();
+  right_top = right_bottom + hand_depth * grasp.getApproach();
+  left_center = left_bottom + 0.5 * (left_top - left_bottom);
+  right_center = right_bottom + 0.5 * (right_top - right_bottom);
+  base_center = left_bottom + 0.5 * (right_bottom - left_bottom) - 0.01 * grasp.getApproach();
+  // std::cout << "Position: " << base_center(0) << "," << base_center(1) << ","
+  //          << base_center(2) << std::endl;
+  Eigen::Quaterniond quat(grasp.getFrame());
+  // std::cout << "Orientation: " << quat.x() << "," << quat.y() << "," <<
+  // quat.z()
+  //          << "," << quat.w() << std::endl;
+
+  /*pre_pose.pose.position.x =
+      (base_center - 0.01 * grasp.getApproach().normalized())(0);
+  pre_pose.pose.position.y =
+      (base_center - 0.01 * grasp.getApproach().normalized())(1);
+  pre_pose.pose.position.z =
+      (base_center - 0.01 * grasp.getApproach().normalized())(2);*/
+  pre_pose.pose.position.x = (base_center)(0);
+  pre_pose.pose.position.y = (base_center)(1);
+  pre_pose.pose.position.z = (base_center)(2);
+  pre_pose.pose.orientation.x = quat.x();
+  pre_pose.pose.orientation.y = quat.y();
+  pre_pose.pose.orientation.z = quat.z();
+  pre_pose.pose.orientation.w = quat.w();
+  pre_pose.header.stamp = ros::Time();
+  pre_pose.header.frame_id = frame_;
+  return pre_pose;
+}
 
 int main(int argc, char** argv)
 {
