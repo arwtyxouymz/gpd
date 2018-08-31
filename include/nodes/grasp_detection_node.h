@@ -41,6 +41,8 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Vector3.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 
@@ -181,6 +183,8 @@ private:
 
   Eigen::Matrix3Xd fillMatrixFromFile(const std::string& filename, int num_normals);
 
+  geometry_msgs::PoseStamped convert_to_ros_msg(Grasp &grasp);
+
   Eigen::Vector3d view_point_; ///< (input) view point of the camera onto the point cloud
 
   CloudCamera* cloud_camera_; ///< stores point cloud with (optional) camera information and surface normals
@@ -195,6 +199,8 @@ private:
   ros::Subscriber samples_sub_; ///< ROS subscriber for samples messages
   ros::Publisher grasps_pub_; ///< ROS publisher for grasp list messages
   ros::Publisher grasps_rviz_pub_; ///< ROS publisher for grasps in rviz (visualization)
+  ros::Publisher best_grasp_pub; // < ROS best grasp publisher
+  ros::Publisher approach_pub;
   ros::ServiceServer srv_set_params_; ///< ROS service server for setting params
 
   bool use_importance_sampling_; ///< if importance sampling is used
