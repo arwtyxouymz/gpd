@@ -396,27 +396,54 @@ visualization_msgs::MarkerArray GraspDetectionNode::convertToVisualGraspMsg(cons
   Eigen::Vector3d left_bottom, right_bottom, left_top, right_top, left_center, right_center, approach_center,
     base_center;
 
+  // for (int i = 0; i < hands.size(); i++)
+  // {
+  //   left_bottom = hands[i].getGraspBottom() - (hw - 0.5*finger_width) * hands[i].getBinormal();
+  //   right_bottom = hands[i].getGraspBottom() + (hw - 0.5*finger_width) * hands[i].getBinormal();
+  //   left_top = left_bottom + hand_depth * hands[i].getApproach();
+  //   right_top = right_bottom + hand_depth * hands[i].getApproach();
+  //   left_center = left_bottom + 0.5*(left_top - left_bottom);
+  //   right_center = right_bottom + 0.5*(right_top - right_bottom);
+  //   base_center = left_bottom + 0.5*(right_bottom - left_bottom) - 0.01*hands[i].getApproach();
+  //   approach_center = base_center - 0.04*hands[i].getApproach();
+  //
+  //   base = createHandBaseMarker(left_bottom, right_bottom, hands[i].getFrame(), 0.02, hand_height, i, frame_id);
+  //   left_finger = createFingerMarker(left_center, hands[i].getFrame(), hand_depth, finger_width, hand_height, i*3, frame_id);
+  //   right_finger = createFingerMarker(right_center, hands[i].getFrame(), hand_depth, finger_width, hand_height, i*3+1, frame_id);
+  //   approach = createFingerMarker(approach_center, hands[i].getFrame(), 0.08, finger_width, hand_height, i*3+2, frame_id);
+  //
+  //   marker_array.markers.push_back(left_finger);
+  //   marker_array.markers.push_back(right_finger);
+  //   marker_array.markers.push_back(approach);
+  //   marker_array.markers.push_back(base);
+  // }
+
+  int max_idx = 0;
   for (int i = 0; i < hands.size(); i++)
   {
-    left_bottom = hands[i].getGraspBottom() - (hw - 0.5*finger_width) * hands[i].getBinormal();
-    right_bottom = hands[i].getGraspBottom() + (hw - 0.5*finger_width) * hands[i].getBinormal();
-    left_top = left_bottom + hand_depth * hands[i].getApproach();
-    right_top = right_bottom + hand_depth * hands[i].getApproach();
+      if (hands[i].getScore() > hands[max_idx].getScore()) {
+          max_idx = i;
+      }
+  }
+  Grasp max_grasp = hands[max_idx];
+    left_bottom = max_grasp.getGraspBottom() - (hw - 0.5*finger_width) * max_grasp.getBinormal();
+    right_bottom = max_grasp.getGraspBottom() + (hw - 0.5*finger_width) * max_grasp.getBinormal();
+    left_top = left_bottom + hand_depth * max_grasp.getApproach();
+    right_top = right_bottom + hand_depth * max_grasp.getApproach();
     left_center = left_bottom + 0.5*(left_top - left_bottom);
     right_center = right_bottom + 0.5*(right_top - right_bottom);
-    base_center = left_bottom + 0.5*(right_bottom - left_bottom) - 0.01*hands[i].getApproach();
-    approach_center = base_center - 0.04*hands[i].getApproach();
+    base_center = left_bottom + 0.5*(right_bottom - left_bottom) - 0.01*max_grasp.getApproach();
+    approach_center = base_center - 0.04*max_grasp.getApproach();
 
-    base = createHandBaseMarker(left_bottom, right_bottom, hands[i].getFrame(), 0.02, hand_height, i, frame_id);
-    left_finger = createFingerMarker(left_center, hands[i].getFrame(), hand_depth, finger_width, hand_height, i*3, frame_id);
-    right_finger = createFingerMarker(right_center, hands[i].getFrame(), hand_depth, finger_width, hand_height, i*3+1, frame_id);
-    approach = createFingerMarker(approach_center, hands[i].getFrame(), 0.08, finger_width, hand_height, i*3+2, frame_id);
+    base = createHandBaseMarker(left_bottom, right_bottom, max_grasp.getFrame(), 0.02, hand_height, 0, frame_id);
+    left_finger = createFingerMarker(left_center, max_grasp.getFrame(), hand_depth, finger_width, hand_height, 0*3, frame_id);
+    right_finger = createFingerMarker(right_center, max_grasp.getFrame(), hand_depth, finger_width, hand_height, 0*3+1, frame_id);
+    approach = createFingerMarker(approach_center, max_grasp.getFrame(), 0.08, finger_width, hand_height, 0*3+2, frame_id);
 
     marker_array.markers.push_back(left_finger);
     marker_array.markers.push_back(right_finger);
     marker_array.markers.push_back(approach);
     marker_array.markers.push_back(base);
-  }
 
   return marker_array;
 }
