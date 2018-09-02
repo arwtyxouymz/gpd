@@ -68,7 +68,8 @@ GraspDetectionNode::GraspDetectionNode(ros::NodeHandle& node) : has_cloud_(false
   }
 
   // uses ROS topics to publish grasp candidates, antipodal grasps, and grasps after clustering
-  grasps_pub_ = nh_.advertise<gpd::GraspConfigList>("clustered_grasps", 10);
+  // grasps_pub_ = nh_.advertise<gpd::GraspConfigList>("clustered_grasps", 10);
+  grasps_pub_ = nh_.advertise<gpd::GraspSetList>("clustered_grasps", 10);
   best_grasp_pub = nh_.advertise<geometry_msgs::PoseStamped>("/best_grasp_pose", 1);
   approach_pub = nh_.advertise<geometry_msgs::Vector3>("/best_grasp_approach", 1);
 
@@ -191,8 +192,12 @@ std::vector<Grasp> GraspDetectionNode::detectGraspPosesInTopic()
 
   // Publish the selected grasps.
   gpd::GraspConfigList selected_grasps_msg = createGraspListMsg(grasps);
-  grasps_pub_.publish(selected_grasps_msg);
-  ROS_INFO_STREAM("Published " << selected_grasps_msg.grasps.size() << " highest-scoring grasps.");
+  gpd::GraspSetList custom_grasps_msg = createGraspSetListMsg(grasps);
+  // grasps_pub_.publish(selected_grasps_msg);
+  grasps_pub_.publish(custom_grasps_msg);
+
+  // ROS_INFO_STREAM("Published " << selected_grasps_msg.grasps.size() << " highest-scoring grasps.");
+  ROS_INFO_STREAM("Published " << custom_grasps_msg.grasps.size() << " highest-scoring grasps.");
 
   return grasps;
 }
@@ -369,6 +374,26 @@ gpd::GraspConfigList GraspDetectionNode::createGraspListMsg(const std::vector<Gr
   return msg;
 }
 
+gpd::GraspSetList createGraspSetListMsg(const std::vector<Grasp>& hands)
+{
+    gpd::GraspSetList msg;
+    std::vector<GraspSet> grasps;
+    for (int i = 0; i < hands.size(); i++)
+        grasps.push_back(convertToGraspSetMsg(hands[i]));
+
+    // Sort => data要らないかも
+    std::sort(grasps.begin(), 
+              grasps.end(), 
+              [](const GraspSet& a, const GraspSet& b){
+                return a.score.data > b.score.data;
+              })
+
+    for (int i = 0; i < grasps.size(); i++)
+        msg.grasps.push_back(grasps[i]);
+    msg.header = cloud_camera_header_;
+
+    return msg;
+}
 
 gpd::GraspConfig GraspDetectionNode::convertToGraspMsg(const Grasp& hand)
 {
@@ -386,6 +411,15 @@ gpd::GraspConfig GraspDetectionNode::convertToGraspMsg(const Grasp& hand)
   return msg;
 }
 
+gpd::GraspSet convertToGraspSetMsg(const Grasp& hand)
+{
+    gpd::GraspSet msg;
+    tf::vectorEigenToMsg(hand.getApproach(), msg.approach);
+    // ここdataが必要かも
+    msg.pose = convert_to_ros_msg(hand);
+    msg.score.data = hand.getScore();
+    return msg;
+}
 
 visualization_msgs::MarkerArray GraspDetectionNode::convertToVisualGraspMsg(const std::vector<Grasp>& hands,
   double outer_diameter, double hand_depth, double finger_width, double hand_height, const std::string& frame_id)
@@ -528,8 +562,7 @@ visualization_msgs::Marker GraspDetectionNode::createHandBaseMarker(const Eigen:
     return marker;
 }
 
-geometry_msgs::PoseStamped
-GraspDetectionNode::convert_to_ros_msg(Grasp &grasp) {
+geometry_msgs::PoseStamped GraspDetectionNode::convert_to_ros_msg(Grasp &grasp) {
     const HandSearch::Parameters &params =
         grasp_detector_->getHandSearchParameters();
     double outer_diameter, hand_depth, finger_width, hand_height;
@@ -554,8 +587,8 @@ GraspDetectionNode::convert_to_ros_msg(Grasp &grasp) {
     right_center = right_bottom + 0.5 * (right_top - right_bottom);
     base_center = left_bottom + 0.5 * (right_bottom - left_bottom) - 0.03 * grasp.getApproach();
     Eigen::Quaterniond quat(grasp.getFrame());
-    geometry_msgs::PoseStamped pre_pose;
 
+    geometry_msgs::PoseStamped pre_pose;
     pre_pose.pose.position.x = (base_center)(0);
     pre_pose.pose.position.y = (base_center)(1);
     pre_pose.pose.position.z = (base_center)(2);

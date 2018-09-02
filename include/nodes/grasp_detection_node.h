@@ -60,6 +60,8 @@
 #include <gpd/CloudSources.h>
 #include <gpd/GraspConfig.h>
 #include <gpd/GraspConfigList.h>
+#include <gpd/GraspSet.h>
+#include <gpd/GraspSetList.h>
 #include <gpd/SamplesMsg.h>
 
 // this project (headers)
@@ -169,8 +171,10 @@ private:
    * \return the ROS message that contains the grasp poses
   */
   gpd::GraspConfigList createGraspListMsg(const std::vector<Grasp>& hands);
+  gpd::GraspSetList createGraspSetListMsg(const std::vector<Grasp>& hands);
 
   gpd::GraspConfig convertToGraspMsg(const Grasp& hand);
+  gpd::GraspSet convertToGraspSetMsg(const Grasp& hand);
 
   visualization_msgs::MarkerArray convertToVisualGraspMsg(const std::vector<Grasp>& hands, double outer_diameter,
     double hand_depth, double finger_width, double hand_height, const std::string& frame_id);
