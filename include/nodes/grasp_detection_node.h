@@ -187,7 +187,7 @@ private:
 
   Eigen::Matrix3Xd fillMatrixFromFile(const std::string& filename, int num_normals);
 
-  geometry_msgs::PoseStamped convert_to_ros_msg(Grasp &grasp);
+  geometry_msgs::PoseStamped convert_to_ros_msg(const Grasp &grasp);
 
   Eigen::Vector3d view_point_; ///< (input) view point of the camera onto the point cloud
 

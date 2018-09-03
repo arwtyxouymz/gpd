@@ -374,22 +374,21 @@ gpd::GraspConfigList GraspDetectionNode::createGraspListMsg(const std::vector<Gr
   return msg;
 }
 
-gpd::GraspSetList createGraspSetListMsg(const std::vector<Grasp>& hands)
+gpd::GraspSetList GraspDetectionNode::createGraspSetListMsg(const std::vector<Grasp>& hands)
 {
     gpd::GraspSetList msg;
-    std::vector<GraspSet> grasps;
+    std::vector<gpd::GraspSet> grasps;
     for (int i = 0; i < hands.size(); i++)
         grasps.push_back(convertToGraspSetMsg(hands[i]));
 
-    // Sort => data要らないかも
     std::sort(grasps.begin(), 
               grasps.end(), 
-              [](const GraspSet& a, const GraspSet& b){
+              [](const gpd::GraspSet& a, const gpd::GraspSet& b) {
                 return a.score.data > b.score.data;
-              })
+              });
 
-    for (int i = 0; i < grasps.size(); i++)
-        msg.grasps.push_back(grasps[i]);
+    for (int j = 0; j < grasps.size(); j++)
+        msg.grasps.push_back(grasps[j]);
     msg.header = cloud_camera_header_;
 
     return msg;
@@ -411,7 +410,7 @@ gpd::GraspConfig GraspDetectionNode::convertToGraspMsg(const Grasp& hand)
   return msg;
 }
 
-gpd::GraspSet convertToGraspSetMsg(const Grasp& hand)
+gpd::GraspSet GraspDetectionNode::convertToGraspSetMsg(const Grasp& hand)
 {
     gpd::GraspSet msg;
     tf::vectorEigenToMsg(hand.getApproach(), msg.approach);
@@ -562,7 +561,7 @@ visualization_msgs::Marker GraspDetectionNode::createHandBaseMarker(const Eigen:
     return marker;
 }
 
-geometry_msgs::PoseStamped GraspDetectionNode::convert_to_ros_msg(Grasp &grasp) {
+geometry_msgs::PoseStamped GraspDetectionNode::convert_to_ros_msg(const Grasp &grasp) {
     const HandSearch::Parameters &params =
         grasp_detector_->getHandSearchParameters();
     double outer_diameter, hand_depth, finger_width, hand_height;
