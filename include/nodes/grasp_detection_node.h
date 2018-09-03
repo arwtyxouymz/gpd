@@ -203,8 +203,6 @@ private:
   ros::Subscriber samples_sub_; ///< ROS subscriber for samples messages
   ros::Publisher grasps_pub_; ///< ROS publisher for grasp list messages
   ros::Publisher grasps_rviz_pub_; ///< ROS publisher for grasps in rviz (visualization)
-  ros::Publisher best_grasp_pub; // < ROS best grasp publisher
-  ros::Publisher approach_pub;
   ros::ServiceServer srv_set_params_; ///< ROS service server for setting params
 
   bool use_importance_sampling_; ///< if importance sampling is used

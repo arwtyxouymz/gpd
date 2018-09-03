@@ -70,8 +70,6 @@ GraspDetectionNode::GraspDetectionNode(ros::NodeHandle& node) : has_cloud_(false
   // uses ROS topics to publish grasp candidates, antipodal grasps, and grasps after clustering
   // grasps_pub_ = nh_.advertise<gpd::GraspConfigList>("clustered_grasps", 10);
   grasps_pub_ = nh_.advertise<gpd::GraspSetList>("clustered_grasps", 10);
-  best_grasp_pub = nh_.advertise<geometry_msgs::PoseStamped>("/best_grasp_pose", 1);
-  approach_pub = nh_.advertise<geometry_msgs::Vector3>("/best_grasp_approach", 1);
 
   // Advertise the SetParameters service
   srv_set_params_ = nh_.advertiseService("/gpd/set_params", &GraspDetectionNode::set_params_callback, this);
@@ -414,7 +412,6 @@ gpd::GraspSet GraspDetectionNode::convertToGraspSetMsg(const Grasp& hand)
 {
     gpd::GraspSet msg;
     tf::vectorEigenToMsg(hand.getApproach(), msg.approach);
-    // ここdataが必要かも
     msg.pose = convert_to_ros_msg(hand);
     msg.score.data = hand.getScore();
     return msg;
@@ -430,58 +427,36 @@ visualization_msgs::MarkerArray GraspDetectionNode::convertToVisualGraspMsg(cons
   visualization_msgs::Marker left_finger, right_finger, base, approach;
   Eigen::Vector3d left_bottom, right_bottom, left_top, right_top, left_center, right_center, approach_center,
     base_center;
-
-  // for (int i = 0; i < hands.size(); i++)
-  // {
-  //   left_bottom = hands[i].getGraspBottom() - (hw - 0.5*finger_width) * hands[i].getBinormal();
-  //   right_bottom = hands[i].getGraspBottom() + (hw - 0.5*finger_width) * hands[i].getBinormal();
-  //   left_top = left_bottom + hand_depth * hands[i].getApproach();
-  //   right_top = right_bottom + hand_depth * hands[i].getApproach();
-  //   left_center = left_bottom + 0.5*(left_top - left_bottom);
-  //   right_center = right_bottom + 0.5*(right_top - right_bottom);
-  //   base_center = left_bottom + 0.5*(right_bottom - left_bottom) - 0.01*hands[i].getApproach();
-  //   approach_center = base_center - 0.04*hands[i].getApproach();
-  //
-  //   base = createHandBaseMarker(left_bottom, right_bottom, hands[i].getFrame(), 0.02, hand_height, i, frame_id);
-  //   left_finger = createFingerMarker(left_center, hands[i].getFrame(), hand_depth, finger_width, hand_height, i*3, frame_id);
-  //   right_finger = createFingerMarker(right_center, hands[i].getFrame(), hand_depth, finger_width, hand_height, i*3+1, frame_id);
-  //   approach = createFingerMarker(approach_center, hands[i].getFrame(), 0.08, finger_width, hand_height, i*3+2, frame_id);
-  //
-  //   marker_array.markers.push_back(left_finger);
-  //   marker_array.markers.push_back(right_finger);
-  //   marker_array.markers.push_back(approach);
-  //   marker_array.markers.push_back(base);
-  // }
-
-  int max_idx = 0;
+  std::vector<Grasp> ordered_grasps;
   for (int i = 0; i < hands.size(); i++)
+      ordered_grasps.push_back(hands[i]);
+  std::sort(ordered_grasps.begin(),
+          ordered_grasps.end(),
+          [](const Grasp& a, const Grasp& b) {
+            return a.getScore() > b.getScore();
+          });
+
+  for (int i = 0; i < 1; i++)
   {
-      if (hands[i].getScore() > hands[max_idx].getScore()) {
-          max_idx = i;
-      }
+    left_bottom = ordered_grasps[i].getGraspBottom() - (hw - 0.5*finger_width) * ordered_grasps[i].getBinormal();
+    right_bottom = ordered_grasps[i].getGraspBottom() + (hw - 0.5*finger_width) * ordered_grasps[i].getBinormal();
+    left_top = left_bottom + hand_depth * ordered_grasps[i].getApproach();
+    right_top = right_bottom + hand_depth * ordered_grasps[i].getApproach();
+    left_center = left_bottom + 0.5*(left_top - left_bottom);
+    right_center = right_bottom + 0.5*(right_top - right_bottom);
+    base_center = left_bottom + 0.5*(right_bottom - left_bottom) - 0.01*ordered_grasps[i].getApproach();
+    approach_center = base_center - 0.04*ordered_grasps[i].getApproach();
+  
+    base = createHandBaseMarker(left_bottom, right_bottom, ordered_grasps[i].getFrame(), 0.02, hand_height, i, frame_id);
+    left_finger = createFingerMarker(left_center, ordered_grasps[i].getFrame(), hand_depth, finger_width, hand_height, i*3, frame_id);
+    right_finger = createFingerMarker(right_center, ordered_grasps[i].getFrame(), hand_depth, finger_width, hand_height, i*3+1, frame_id);
+    approach = createFingerMarker(approach_center, ordered_grasps[i].getFrame(), 0.08, finger_width, hand_height, i*3+2, frame_id);
+  
+    marker_array.markers.push_back(left_finger);
+    marker_array.markers.push_back(right_finger);
+    marker_array.markers.push_back(approach);
+    marker_array.markers.push_back(base);
   }
-  Grasp max_grasp = hands[max_idx];
-  left_bottom = max_grasp.getGraspBottom() - (hw - 0.5*finger_width) * max_grasp.getBinormal();
-  right_bottom = max_grasp.getGraspBottom() + (hw - 0.5*finger_width) * max_grasp.getBinormal();
-  left_top = left_bottom + hand_depth * max_grasp.getApproach();
-  right_top = right_bottom + hand_depth * max_grasp.getApproach();
-  left_center = left_bottom + 0.5*(left_top - left_bottom);
-  right_center = right_bottom + 0.5*(right_top - right_bottom);
-  base_center = left_bottom + 0.5*(right_bottom - left_bottom) - 0.01*max_grasp.getApproach();
-  approach_center = base_center - 0.04*max_grasp.getApproach();
-
-  base = createHandBaseMarker(left_bottom, right_bottom, max_grasp.getFrame(), 0.02, hand_height, 0, frame_id);
-  left_finger = createFingerMarker(left_center, max_grasp.getFrame(), hand_depth, finger_width, hand_height, 0*3, frame_id);
-  right_finger = createFingerMarker(right_center, max_grasp.getFrame(), hand_depth, finger_width, hand_height, 0*3+1, frame_id);
-  approach = createFingerMarker(approach_center, max_grasp.getFrame(), 0.08, finger_width, hand_height, 0*3+2, frame_id);
-
-  marker_array.markers.push_back(left_finger);
-  marker_array.markers.push_back(right_finger);
-  marker_array.markers.push_back(approach);
-  marker_array.markers.push_back(base);
-
-  geometry_msgs::PoseStamped poseStamp = convert_to_ros_msg(max_grasp);
-  best_grasp_pub.publish(poseStamp);
 
   return marker_array;
 }
@@ -597,9 +572,6 @@ geometry_msgs::PoseStamped GraspDetectionNode::convert_to_ros_msg(const Grasp &g
     pre_pose.pose.orientation.w = quat.w();
     pre_pose.header.stamp = ros::Time();
     pre_pose.header.frame_id = frame_;
-    geometry_msgs::Vector3 v;
-    tf::vectorEigenToMsg(grasp.getApproach(), v);
-    approach_pub.publish(v);
     return pre_pose;
 }
 
